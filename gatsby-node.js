@@ -262,6 +262,42 @@ exports.createPages = async ({ graphql, actions, reporter }) => {
       },
     })
   })
+  //
+
+  // Need : a grahQL query to get the list of GraphQL regions and call the line 251 to create the pages dynamically
+  // for each of the regions
+  const regionsResult = await graphql(
+    `
+      query Regions {
+        allContentfulDataGeoRegion {
+          nodes {
+            contentful_id
+            name
+            slug
+          }
+        }
+      }
+    `,
+  )
+
+  if (regionsResult.errors) {
+    reporter.panicOnBuild(`
+      Error while running GraphQL query to get
+      the region data from Contentful.
+    `)
+    return
+  }
+
+  const regions = regionsResult.data.allContentfulDataGeoRegion.nodes
+  regions.forEach((region) => {
+    createPage({
+      path: 'where-we-work/' + region.slug,
+      component: pageLayouts.main,
+      context: {
+        region: region.contentful_id,
+      },
+    })
+  })
 }
 
 // https://reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html#manual-babel-setup
